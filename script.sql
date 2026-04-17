@@ -45,12 +45,26 @@ $$ language plpgsql;
 
 -- Создание триггера для таблицы users
 create trigger trigger_log_users_audit
--- Выполнять ПОСЛЕ обновлениея таблицы users
+-- Выполнять ПОСЛЕ обновления таблицы users
 after update on users
 -- Для каждой строки
 for each row
 -- Выполнение функции
 execute function log_users_audit();
+
+-- Триггерная функция обновляет время изменения
+create or replace function update_updated_at_users()
+returns trigger as $$
+begin
+    new.updated_at = current_timestamp;
+    return new;
+end;
+$$ language plpgsql;
+
+create trigger trigger_update_updated_at_users
+before update on users
+for each row
+execute function update_updated_at_users();
 
 -- Тестовые данные
 insert into users(name, email, role) values 
